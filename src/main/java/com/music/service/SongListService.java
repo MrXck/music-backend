@@ -12,4 +12,8 @@ public interface SongListService extends IService<SongList> {
     SongList getSongList(Integer id);
 
     IPage<SongList> search(String keyword, Integer pageSize, Integer pageNum);
+
+    void delete(Integer id);
+
+    void updateSongList(SongList songList);
 }

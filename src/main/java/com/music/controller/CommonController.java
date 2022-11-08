@@ -32,7 +32,8 @@ public class CommonController {
             file.transferTo(new File(PATH + filename));
         } catch (IOException e) {
         }
-        return R.success("http://127.0.0.1:8099/file/download/" + filename);
+//        return R.success("http://127.0.0.1:8099/file/download/" + filename);
+        return R.success("http://10.10.30.123:8099/file/download/" + filename);
     }
 
 

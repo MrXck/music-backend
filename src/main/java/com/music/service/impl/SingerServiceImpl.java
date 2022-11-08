@@ -1,11 +1,10 @@
 package com.music.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.music.entity.Singer;
-import com.music.entity.SingerSong;
-import com.music.entity.Song;
-import com.music.entity.SongCollect;
+import com.music.entity.*;
 import com.music.mapper.SingerMapper;
 import com.music.mapper.SingerSongMapper;
 import com.music.mapper.SongCollectMapper;
@@ -47,7 +46,6 @@ public class SingerServiceImpl extends ServiceImpl<SingerMapper, Singer> impleme
         singerSongLambdaQueryWrapper1.eq(SingerSong::getSingerId, singerId);
         List<SingerSong> singerSongs1 = singerSongMapper.selectList(singerSongLambdaQueryWrapper1);
         List<Integer> songIds = singerSongs1.stream().map(SingerSong::getSongId).collect(Collectors.toList());
-        System.out.println(songIds);
 
         List<Song> list = new ArrayList<>();
 
@@ -80,11 +78,51 @@ public class SingerServiceImpl extends ServiceImpl<SingerMapper, Singer> impleme
             }).collect(Collectors.toList());
         }
 
-
-
         Map<String, Object> map = new HashMap<>();
         map.put("singer", singer);
         map.put("songs", list);
         return map;
+    }
+
+    @Override
+    public IPage<Singer> getSingerByPage(Integer pageSize, Integer pageNum, String keyword) {
+        Page<Singer> page = new Page<>(pageNum, pageSize);
+        LambdaQueryWrapper<Singer> queryWrapper = new LambdaQueryWrapper<>();
+        if (!"".equals(keyword) && keyword != null){
+            queryWrapper.like(Singer::getName, keyword);
+        }
+        return this.page(page, queryWrapper);
+    }
+
+    @Override
+    public void updateOrSave(Singer singer) {
+        this.saveOrUpdate(singer);
+        List<Song> songs = singer.getSongs();
+
+        List<Integer> songIds = songs.stream().map(Song::getId).collect(Collectors.toList());
+        if (songIds.size() != 0){
+            singerSongMapper.deleteBatchIds(songIds);
+        }
+
+        for (Song song : songs) {
+            SingerSong singerSong = new SingerSong();
+            singerSong.setSingerId(singer.getId());
+            singerSong.setSongId(song.getId());
+            singerSongMapper.insert(singerSong);
+        }
+    }
+
+    @Override
+    public void deleteSinger(Integer id) {
+        LambdaQueryWrapper<SingerSong> singerSongLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        singerSongLambdaQueryWrapper.eq(SingerSong::getSingerId, id);
+        List<SingerSong> singerSongs = singerSongMapper.selectList(singerSongLambdaQueryWrapper);
+
+        List<Integer> songIds = singerSongs.stream().map(SingerSong::getSongId).collect(Collectors.toList());
+        List<Integer> singerSongIds = singerSongs.stream().map(SingerSong::getId).collect(Collectors.toList());
+        songMapper.deleteBatchIds(songIds);
+        singerSongMapper.deleteBatchIds(singerSongIds);
+
+        singerMapper.deleteById(id);
     }
 }

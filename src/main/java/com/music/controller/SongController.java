@@ -6,6 +6,7 @@ import com.music.entity.Song;
 import com.music.service.SongService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,6 +29,11 @@ public class SongController {
     public R search(String keyword, Integer pageSize, Integer pageNum){
         IPage<Song> iPage = songService.search(keyword, pageSize, pageNum);
         return R.success(iPage);
+    }
+
+    @GetMapping("/{id}")
+    public R<Song> getById(@PathVariable("id") Integer id){
+        return R.success(songService.getSongById(id));
     }
 
 }

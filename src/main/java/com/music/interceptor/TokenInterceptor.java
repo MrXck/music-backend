@@ -2,6 +2,7 @@ package com.music.interceptor;
 
 import com.alibaba.druid.util.StringUtils;
 import com.music.service.UserService;
+import com.music.utils.AdminAuthorization;
 import com.music.utils.NoAuthorization;
 import com.music.utils.UserThreadLocal;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,35 @@ public class TokenInterceptor implements HandlerInterceptor {
         }
 
         String token = request.getHeader("Authorization");
+        if(!StringUtils.isEmpty(token)){
+            String authorization = this.userService.checkAdminToken(token);
+            if("admin".equals(authorization)){
+                String redisToken = (String) redisTemplate.opsForValue().get(authorization);
+                if(redisToken != null && !"".equals(redisToken)){
+                    //把id放入本地线程中
+                    redisTemplate.opsForValue().set(authorization, token, 30, TimeUnit.MINUTES);
+                    return true;
+                }
+            }
+        }
+
+        if (handlerMethod.hasMethodAnnotation(AdminAuthorization.class)){
+            if(!StringUtils.isEmpty(token)){
+                String authorization = this.userService.checkAdminToken(token);
+                if("admin".equals(authorization)){
+                    String redisToken = (String) redisTemplate.opsForValue().get(authorization);
+                    if(redisToken != null && !"".equals(redisToken)){
+                        //把id放入本地线程中
+                        redisTemplate.opsForValue().set(authorization, token, 30, TimeUnit.MINUTES);
+                        return true;
+                    }
+                }
+            }
+
+            response.setStatus(403);
+            return false;
+        }
+
         if(!StringUtils.isEmpty(token)){
             Integer userId = this.userService.checkToken(token);
             if(userId != null){

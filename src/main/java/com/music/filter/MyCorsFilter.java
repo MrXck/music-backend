@@ -9,7 +9,6 @@ import java.io.IOException;
 
 @Component
 public class MyCorsFilter implements Filter {
-    private boolean isCross = false;
 
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest httpServletRequest = (HttpServletRequest) request;
@@ -22,7 +21,9 @@ public class MyCorsFilter implements Filter {
         httpServletResponse.setHeader("Access-Control-Allow-Credentials", "true");
         chain.doFilter(request, response);
     }
+
     public void init(FilterConfig filterConfig) {}
+
     public void destroy() {}
 
 }

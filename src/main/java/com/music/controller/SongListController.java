@@ -5,10 +5,7 @@ import com.music.common.R;
 import com.music.entity.SongList;
 import com.music.service.SongListService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -36,4 +33,23 @@ public class SongListController {
         IPage<SongList> iPage = songListService.search(keyword, pageSize, pageNum);
         return R.success(iPage);
     }
+
+    @PostMapping("/delete/{id}")
+    public R<String> delete(@PathVariable("id") Integer id){
+        songListService.delete(id);
+        return R.success("");
+    }
+
+    @PostMapping("/add")
+    public R<String> add(@RequestBody SongList songList){
+        songListService.save(songList);
+        return R.success("");
+    }
+
+    @PostMapping("/update")
+    public R<String> update(@RequestBody SongList songList){
+        songListService.updateSongList(songList);
+        return R.success("");
+    }
+
 }

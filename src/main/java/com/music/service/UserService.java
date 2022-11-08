@@ -1,5 +1,6 @@
 package com.music.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.music.entity.User;
 
@@ -14,7 +15,11 @@ public interface UserService extends IService<User> {
 
     Integer checkToken(String token);
 
+    String checkAdminToken(String token);
+
     User updateByUserId(User user);
 
     User findByPhone(String phone);
+
+    IPage<User> getUserByPage(Integer pageSize, Integer pageNum, String keyword);
 }

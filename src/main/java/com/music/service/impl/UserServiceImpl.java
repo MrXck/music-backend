@@ -4,6 +4,8 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.convert.Convert;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.music.config.RSAConfig;
 import com.music.entity.User;
@@ -82,6 +84,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    public String checkAdminToken(String token) {
+        Map<String, Object> map = JwtUtils.checkToken(token, this.rsaConfig.getPublishStr());
+        if (CollUtil.isNotEmpty(map)) {
+            return map.get("userId").toString();
+        }
+        return null;
+    }
+
+    @Override
     public User updateByUserId(User user) {
         Integer userId = UserThreadLocal.get();
         User user1 = userMapper.selectById(userId);
@@ -105,5 +116,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(phone != null, User::getPhone, phone);
         return userMapper.selectOne(queryWrapper);
+    }
+
+    @Override
+    public IPage<User> getUserByPage(Integer pageSize, Integer pageNum, String keyword) {
+        Page<User> page = new Page<>(pageNum, pageSize);
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        if (!"".equals(keyword) && keyword != null){
+            queryWrapper.like(User::getUsername, keyword)
+                    .or().like(User::getPhone, keyword);
+        }
+        queryWrapper.orderByDesc(User::getCreateTime);
+        Page<User> userPage = this.page(page, queryWrapper);
+        userPage.setRecords(userPage.getRecords().stream().map(item -> {
+            item.setPassword("");
+            return item;
+        }).collect(Collectors.toList()));
+        return userPage;
     }
 }

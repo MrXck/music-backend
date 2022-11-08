@@ -11,6 +11,7 @@ import com.music.utils.UserThreadLocal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -129,5 +130,38 @@ public class SongListServiceImpl extends ServiceImpl<SongListMapper, SongList> i
 
         iPage.setRecords(list);
         return iPage;
+    }
+
+    @Override
+    public void delete(Integer id) {
+        LambdaQueryWrapper<SongListCollect> songListCollectLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        songListCollectLambdaQueryWrapper.eq(SongListCollect::getSongListId, id);
+        songListCollectMapper.delete(songListCollectLambdaQueryWrapper);
+
+        this.removeById(id);
+    }
+
+    @Override
+    public void updateSongList(SongList songList) {
+        if (songList.getId() == null){
+            songList.setCreateTime(LocalDateTime.now());
+            this.save(songList);
+        } else {
+            this.updateById(songList);
+        }
+
+        List<Song> songs = songList.getSongs();
+        List<Integer> songIds = songs.stream().map(Song::getId).collect(Collectors.toList());
+
+        if (songIds.size() > 0){
+            songSongListMapper.deleteBatchIds(songIds);
+        }
+
+        for (Song song : songs) {
+            SongSongList songSongList = new SongSongList();
+            songSongList.setSongListId(songList.getId());
+            songSongList.setSongId(song.getId());
+            songSongListMapper.insert(songSongList);
+        }
     }
 }
