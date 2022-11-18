@@ -126,7 +126,7 @@ public class UserController {
     }
 
     @PostMapping("/update")
-    public R update(@RequestBody User user){
+    public R update(@RequestBody User user) throws Exception{
         User user1 = userService.updateByUserId(user);
         return R.success(user1);
     }

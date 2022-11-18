@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.music.config.RSAConfig;
 import com.music.entity.User;
+import com.music.exception.UserException;
 import com.music.mapper.UserMapper;
 import com.music.service.UserService;
 import com.music.utils.JwtUtils;
@@ -93,19 +94,23 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public User updateByUserId(User user) {
+    public User updateByUserId(User user) throws Exception {
         Integer userId = UserThreadLocal.get();
         User user1 = userMapper.selectById(userId);
         LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
         String username = user.getUsername();
         String password = user.getPassword();
         String avatar = user.getAvatar();
-        String phone = user.getPhone();
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(username != null && !"".equals(username), User::getUsername, username);
+        User one = this.getOne(queryWrapper);
+        if (one != null && !userId.equals(one.getId())){
+            throw new UserException("该用户名已存在");
+        }
         updateWrapper.eq(User::getId, userId);
         updateWrapper.set(username != null && !"".equals(username), User::getUsername, username);
         updateWrapper.set(password != null && !"".equals(password), User::getPassword, MD5Utils.md5(password));
         updateWrapper.set(avatar != null && !"".equals(avatar), User::getAvatar, avatar);
-        updateWrapper.set(phone != null && !"".equals(phone), User::getPhone, phone);
         userMapper.update(user1, updateWrapper);
         user1 = userMapper.selectById(userId);
         return user1;

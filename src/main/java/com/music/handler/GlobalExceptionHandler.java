@@ -3,6 +3,7 @@ package com.music.handler;
 import com.music.common.R;
 import com.music.exception.LoginException;
 import com.music.exception.SaveSongException;
+import com.music.exception.UserException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -33,6 +34,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(LoginException.class)
     public R<String> handleBindException(LoginException ex) {
         return R.error("用户名或密码错误");
+    }
+
+    @ExceptionHandler(UserException.class)
+    public R<String> handleBindException(UserException ex) {
+        return R.error(ex.getMessage());
     }
 
 }

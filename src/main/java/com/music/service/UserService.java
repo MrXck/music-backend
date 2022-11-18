@@ -17,7 +17,7 @@ public interface UserService extends IService<User> {
 
     String checkAdminToken(String token);
 
-    User updateByUserId(User user);
+    User updateByUserId(User user) throws Exception;
 
     User findByPhone(String phone);
 
